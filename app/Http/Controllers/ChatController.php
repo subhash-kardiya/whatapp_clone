@@ -7,6 +7,7 @@ use App\Events\MessageStatusUpdated;
 use App\Events\TypingIndicator;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -81,7 +82,20 @@ class ChatController extends Controller
             ));
         }
 
-        return view('chat.index', compact('users', 'activeUser', 'messages'));
+        // Load user's groups
+        $groups = Group::whereHas('members', function ($q) use ($authUser) {
+            $q->where('user_id', $authUser->id);
+        })->with(['members', 'admin', 'lastMessage'])->get()
+          ->map(function ($group) use ($authUser) {
+              $lastMsg = $group->lastMessage;
+              $group->last_message_preview = $lastMsg ? ($lastMsg->type === 'text' ? $lastMsg->message : '📎 File') : '';
+              $group->last_message_time = $lastMsg ? $lastMsg->timeFormatted() : '';
+              $group->last_message_sender_self = $lastMsg && $lastMsg->sender_id === $authUser->id;
+              $group->member_ids = $group->members->pluck('id')->toArray();
+              return $group;
+          });
+
+        return view('chat.index', compact('users', 'activeUser', 'messages', 'groups'));
     }
 
     /**
@@ -223,6 +237,65 @@ class ChatController extends Controller
     }
 
     /**
+     * Load new messages after a given ID (polling fallback).
+     */
+    public function loadNew(int $userId, int $afterId)
+    {
+        $authUser = Auth::user();
+
+        $messages = Message::where(function ($q) use ($authUser, $userId) {
+                $q->where('sender_id', $userId)->where('receiver_id', $authUser->id);
+            })
+            ->where('id', '>', $afterId)
+            ->with(['sender', 'receiver'])
+            ->get();
+
+        return response()->json([
+            'messages' => $messages->map(fn($m) => [
+                'id'          => $m->id,
+                'sender_id'   => $m->sender_id,
+                'message'     => $m->message,
+                'type'        => $m->type,
+                'status'      => $m->status,
+                'file_url'    => $m->fileUrl(),
+                'file_name'   => $m->file_name,
+                'time'        => $m->timeFormatted(),
+                'tick_html'   => $m->tickHtml(),
+                'sender_name' => $m->sender->name,
+            ]),
+        ]);
+    }
+
+    /**
+     * Load new messages from all users after a given ID (global polling fallback).
+     */
+    public function loadAllNew(int $afterId)
+    {
+        $authUser = Auth::user();
+
+        $messages = Message::where('receiver_id', $authUser->id)
+            ->where('id', '>', $afterId)
+            ->where('sender_id', '!=', $authUser->id)
+            ->with(['sender'])
+            ->get();
+
+        return response()->json([
+            'messages' => $messages->map(fn($m) => [
+                'id'          => $m->id,
+                'sender_id'   => $m->sender_id,
+                'message'     => $m->message,
+                'type'        => $m->type,
+                'status'      => $m->status,
+                'file_url'    => $m->fileUrl(),
+                'file_name'   => $m->file_name,
+                'time'        => $m->timeFormatted(),
+                'tick_html'   => $m->tickHtml(),
+                'sender_name' => $m->sender->name,
+            ]),
+        ]);
+    }
+
+    /**
      * Broadcast typing indicator (AJAX).
      */
     public function typing(Request $request)
@@ -236,6 +309,135 @@ class ChatController extends Controller
         ));
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Create a new group chat.
+     */
+    public function createGroup(Request $request)
+    {
+        $request->validate([
+            'name'    => 'required|string|max:255',
+            'members' => 'required|string',
+        ]);
+
+        $authUser = Auth::user();
+        $memberIds = array_map('intval', explode(',', $request->input('members')));
+        $memberIds = array_unique(array_filter($memberIds, fn($id) => $id > 0));
+
+        $group = Group::create([
+            'name'        => $request->input('name'),
+            'admin_id'    => $authUser->id,
+            'description' => null,
+        ]);
+
+        // Add creator + selected members
+        $allMembers = array_unique(array_merge([$authUser->id], $memberIds));
+        $group->members()->sync($allMembers);
+
+        // System message: group created
+        Message::create([
+            'sender_id'   => $authUser->id,
+            'receiver_id' => $authUser->id,
+            'group_id'    => $group->id,
+            'message'     => $authUser->name . ' created group "' . $group->name . '"',
+            'type'        => 'system',
+            'status'      => 'seen',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'group'   => [
+                'id'          => $group->id,
+                'name'        => $group->name,
+                'admin_id'    => $group->admin_id,
+                'avatar'      => $group->avatar,
+                'description' => $group->description,
+                'member_ids'  => $allMembers,
+            ],
+        ]);
+    }
+
+    // -----------------------------------------------------------------------
+
+    /**
+     * Send a message to a group.
+     */
+    public function sendGroupMessage(Request $request)
+    {
+        $request->validate([
+            'group_id' => 'required|exists:groups,id',
+            'message'  => 'nullable|string|max:5000',
+        ]);
+
+        $authUser = Auth::user();
+        $group = Group::findOrFail($request->integer('group_id'));
+
+        // Check membership
+        if (!$group->members->contains($authUser->id)) {
+            return response()->json(['error' => 'Not a group member'], 403);
+        }
+
+        $message = Message::create([
+            'sender_id'   => $authUser->id,
+            'receiver_id' => $authUser->id,
+            'group_id'    => $group->id,
+            'message'     => $request->input('message'),
+            'type'        => 'text',
+            'status'      => 'sent',
+        ]);
+
+        $message->load('sender');
+
+        return response()->json([
+            'success' => true,
+            'message' => [
+                'id'          => $message->id,
+                'sender_id'   => $message->sender_id,
+                'group_id'    => $message->group_id,
+                'message'     => $message->message,
+                'type'        => $message->type,
+                'time'        => $message->timeFormatted(),
+                'tick_html'   => $message->tickHtml(),
+                'sender_name' => $message->sender->name,
+            ],
+        ]);
+    }
+
+    /**
+     * Load messages for a group.
+     */
+    public function loadGroupMessages(int $groupId)
+    {
+        $authUser = Auth::user();
+        $group = Group::findOrFail($groupId);
+
+        if (!$group->members->contains($authUser->id)) {
+            return response()->json(['error' => 'Not a group member'], 403);
+        }
+
+        $messages = Message::where('group_id', $groupId)
+            ->with('sender')
+            ->latest()
+            ->take(50)
+            ->get()
+            ->reverse()
+            ->values()
+            ->map(fn($m) => [
+                'id'          => $m->id,
+                'sender_id'   => $m->sender_id,
+                'group_id'    => $m->group_id,
+                'message'     => $m->message,
+                'type'        => $m->type,
+                'status'      => $m->status,
+                'file_url'    => $m->fileUrl(),
+                'file_name'   => $m->file_name,
+                'time'        => $m->timeFormatted(),
+                'tick_html'   => $m->tickHtml(),
+                'sender_name' => $m->sender->name,
+            ]);
+
+        return response()->json(['messages' => $messages]);
     }
 
     // -----------------------------------------------------------------------

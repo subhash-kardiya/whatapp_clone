@@ -11,6 +11,7 @@ class Message extends Model
     protected $fillable = [
         'sender_id',
         'receiver_id',
+        'group_id',
         'message',
         'type',
         'status',
@@ -39,6 +40,11 @@ class Message extends Model
     public function receiver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'receiver_id');
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
     }
 
     // -----------------------------------------------------------------------
@@ -74,10 +80,14 @@ class Message extends Model
      */
     public function tickHtml(): string
     {
+        $singleCheck = '<svg class="tick-svg tick-sent" viewBox="0 0 16 11" width="16" height="11"><path d="M11.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-2.011-2.095a.463.463 0 0 0-.353-.145.47.47 0 0 0-.335.136.474.474 0 0 0-.016.678l2.375 2.459a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665z" fill="currentColor"/></svg>';
+        $doubleCheck = '<svg class="tick-svg tick-delivered" viewBox="0 0 16 11" width="16" height="11"><path d="M11.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-2.011-2.095a.463.463 0 0 0-.353-.145.47.47 0 0 0-.335.136.474.474 0 0 0-.016.678l2.375 2.459a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665z" fill="currentColor"/><path d="M15.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-1.2-1.251-.352.435 1.202 1.258a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665l-.088-.412z" fill="currentColor"/>';
+        $doubleCheckBlue = '<svg class="tick-svg tick-seen" viewBox="0 0 16 11" width="16" height="11"><path d="M11.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-2.011-2.095a.463.463 0 0 0-.353-.145.47.47 0 0 0-.335.136.474.474 0 0 0-.016.678l2.375 2.459a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665z" fill="currentColor"/><path d="M15.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-1.2-1.251-.352.435 1.202 1.258a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665l-.088-.412z" fill="currentColor"/></svg>';
+
         return match ($this->status) {
-            'sent'      => '<span class="tick tick-sent" title="Sent">✔</span>',
-            'delivered' => '<span class="tick tick-delivered" title="Delivered">✔✔</span>',
-            'seen'      => '<span class="tick tick-seen" title="Seen">✔✔</span>',
+            'sent'      => $singleCheck,
+            'delivered' => $doubleCheck,
+            'seen'      => $doubleCheckBlue,
             default     => '',
         };
     }

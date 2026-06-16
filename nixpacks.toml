@@ -1,0 +1,12 @@
+# Nixpacks configuration for Railway
+# Auto-detected: PHP/Laravel
+# Ensures required PHP extensions are available
+
+[phases.setup]
+nixPkgs = ["php82", "php82Extensions.pdo_mysql", "php82Extensions.mbstring", "php82Extensions.xml", "php82Extensions.curl", "php82Extensions.gd", "php82Extensions.zip"]
+
+[phases.build]
+cmds = ["npm install", "npm run build", "composer install --no-dev --optimize-autoloader"]
+
+[start]
+cmd = "bash start.sh"

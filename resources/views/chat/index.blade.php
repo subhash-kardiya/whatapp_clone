@@ -5,38 +5,61 @@
 @section('content')
 <div class="chat-layout" x-data="chatApp()" x-init="initChat()">
        <!-- LEFT PANEL: CHAT LIST -->
-    <div class="sidebar-panel" x-show="activeLeftPanel === 'chats'">
+    <div class="sidebar-panel" x-show="activeLeftPanel === 'chats'" :class="{'mobile-hidden': activeUser}">
         <!-- Sidebar Header -->
         <header class="panel-header chats-header">
-            <h1 class="whatsapp-sidebar-title">WhatsApp</h1>
-            
-            <div class="header-actions">
-                <button type="button" @click="showNewChatModal = true" class="action-btn" title="Start New Chat">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                    </svg>
-                </button>
-                <div style="position: relative;">
-                    <button type="button" class="action-btn" @click.stop="activeChatHeaderMenu = false; chatContextMenuItem = null; msgContextMenuItem = null; showChatsMenu = !showChatsMenu" title="Menu">
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                        </svg>
-                    </button>
-                    <!-- Chats Header Dropdown Menu -->
-                    <div class="wa-dropdown-menu" x-show="showChatsMenu" @click.away="showChatsMenu = false" style="display: none; position: absolute; right: 0; top: 100%; z-index: 1000;">
-                        <a href="#" @click.prevent="showChatsMenu = false; alert('New Group creation coming soon!')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>New group</a>
-                        <a href="#" @click.prevent="showChatsMenu = false; alert('Starred messages clicked')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>Starred messages</a>
-                        <a href="#" @click.prevent="showChatsMenu = false; alert('Select chats clicked')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM17.99 9l-1.41-1.42-6.59 6.59-2.58-2.57-1.42 1.41 4 3.99z"/></svg>Select chats</a>
-                        <a href="#" @click.prevent="showChatsMenu = false; markAllAsRead()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/></svg>Mark all as read</a>
-                        <a href="#" @click.prevent="showChatsMenu = false; alert('App lock clicked')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>App lock</a>
-                        <a href="#" @click.prevent="showChatsMenu = false; document.getElementById('logoutForm').submit()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>Log out</a>
+            <!-- Normal header (shown when NOT in select mode) -->
+            <template x-if="!selectMode">
+                <div style="display: contents;">
+                    <h1 class="whatsapp-sidebar-title">WhatsApp</h1>
+                    <div class="header-actions">
+                        <button type="button" @click="showNewChatModal = true" class="action-btn" title="Start New Chat">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                        </button>
+                        <div style="position: relative;">
+                            <button type="button" class="action-btn" @click.stop="activeChatHeaderMenu = false; chatContextMenuItem = null; msgContextMenuItem = null; showChatsMenu = !showChatsMenu" title="Menu">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                                </svg>
+                            </button>
+                            <!-- Chats Header Dropdown Menu -->
+                            <div class="wa-dropdown-menu" x-show="showChatsMenu" @click.away="showChatsMenu = false" style="display: none; position: absolute; right: 0; top: 100%; z-index: 1000;">
+                                <a href="#" @click.prevent="showChatsMenu = false; showNewGroupModal = true; contactSearchQuery = ''; searchContacts()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>New group</a>
+                                <a href="#" @click.prevent="showChatsMenu = false; showStarredModal = true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>Starred messages</a>
+                                <a href="#" @click.prevent="showChatsMenu = false; toggleSelectMode()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM17.99 9l-1.41-1.42-6.59 6.59-2.58-2.57-1.42 1.41 4 3.99z"/></svg>Select chats</a>
+                                <a href="#" @click.prevent="showChatsMenu = false; markAllAsRead()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/></svg>Mark all as read</a>
+                                <a href="#" @click.prevent="showChatsMenu = false; showAppLockModal = true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>App lock</a>
+                                <a href="#" @click.prevent="showChatsMenu = false; document.getElementById('logoutForm').submit()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>Log out</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </template>
+            <!-- Select Mode Header -->
+            <template x-if="selectMode">
+                <div style="display: flex; align-items: center; width: 100%; height: 59px; padding: 0 8px;">
+                    <button type="button" @click="exitSelectMode()" style="background: none; border: none; cursor: pointer; padding: 8px; margin-right: 8px; display: flex; align-items: center;">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="var(--text-primary)"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </button>
+                    <span style="font-size: 16px; font-weight: 400; color: var(--text-primary);" x-text="selectedChats.length + ' selected'"></span>
+                    <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                        <button type="button" @click="deleteSelectedChats()" x-show="selectedChats.length > 0" title="Delete selected"
+                            style="background: none; border: none; cursor: pointer; padding: 8px; display: flex; align-items: center;">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--text-primary)"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                        </button>
+                        <button type="button" @click="archiveSelectedChats()" x-show="selectedChats.length > 0" title="Archive selected"
+                            style="background: none; border: none; cursor: pointer; padding: 8px; display: flex; align-items: center;">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--text-primary)"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </template>
         </header>
         
         <!-- Search/Filter -->
-        <div class="search-box-container">
+        <div class="search-box-container" x-show="!selectMode" x-cloak>
             <div class="search-box-wrapper">
                 <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                     <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
@@ -46,7 +69,7 @@
         </div>
 
         <!-- Filter Chips Row -->
-        <div class="filter-chips-container">
+        <div class="filter-chips-container" x-show="!selectMode" x-cloak>
             <button class="filter-chip" :class="{'active': activeFilter === 'all'}" @click="setFilter('all')">All</button>
             <button class="filter-chip" :class="{'active': activeFilter === 'unread'}" @click="setFilter('unread')">
                 Unread <span class="filter-badge" x-show="unreadTotalCount() > 0" x-text="unreadTotalCount()"></span>
@@ -61,10 +84,16 @@
         <div class="chats-scroll-list">
             <template x-for="chat in filteredChats" :key="chat.id">
                 <div class="chat-list-item" 
-                     :class="{'active': activeUser && activeUser.id === chat.id, 'unread': chat.unreadCount > 0}"
+                     :class="{'active': activeUser && activeUser.id === chat.id, 'unread': chat.unreadCount > 0, 'selected': selectMode && selectedChats.some(c => c.id === chat.id)}"
                      @click="selectChat(chat.id)"
                      @contextmenu.prevent="showChatContextMenu($event, chat)">
                     
+                    <!-- Select mode checkbox -->
+                    <input type="checkbox" x-show="selectMode" x-cloak
+                        :checked="selectedChats.some(c => c.id === chat.id)" 
+                        @click.stop="toggleChatSelection(chat)"
+                        class="select-chat-checkbox">
+
                     <div class="chat-avatar-wrapper">
                         <img :src="chat.avatar" 
                              :alt="chat.name" 
@@ -303,7 +332,7 @@
     </div>
     
     <!-- RIGHT PANEL: CHAT WINDOW -->
-    <div class="chat-window-panel">
+    <div class="chat-window-panel" :class="{'select-mode-active': selectMode}">
         
         <!-- Welcome Screen (No chat selected) -->
         <div class="welcome-screen" x-show="!activeUser">
@@ -328,7 +357,10 @@
         <div class="active-chat-pane" x-show="activeUser" style="display: none;">
             <!-- Active Chat Header -->
             <header class="panel-header active-header">
-                <div class="chat-info-block">
+                <button type="button" class="mobile-back-btn" @click="activeUser = null" title="Back">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <div class="chat-info-block" @click="toggleUserProfileDetail()">
                     <img :src="activeUser ? activeUser.avatar : ''"
                          :alt="activeUser ? activeUser.name : ''"
                          class="avatar-img"
@@ -336,12 +368,12 @@
                     <div class="name-status-block">
                         <span class="active-user-name" x-text="activeUser ? activeUser.name : ''"></span>
                         <span class="active-user-status" 
-                              :class="{'online-text': activeUser && activeUser.is_online}" 
-                              x-text="activeUser ? activeUser.status_text : ''"></span>
+                              :class="{'online-text': activeUser && activeUser.is_online}"
+                              x-text="activeUser && activeUser.is_group ? (activeUser.members ? activeUser.members.length + ' members' : 'Group') : (activeUser ? activeUser.status_text : '')"></span>
                     </div>
                 </div>
                 
-                <div class="header-actions">
+            <div class="header-actions" x-show="!selectMode" x-cloak>
                     <button type="button" class="action-btn" @click="alert('Search inside chat')" title="Search inside chat">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                             <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
@@ -378,6 +410,17 @@
                 </div>
                 
                 <template x-for="msg in messages" :key="msg.id">
+                    <!-- System message (centered, no bubble) -->
+                    <template x-if="msg.type === 'system'">
+                        <div class="message-row system-message">
+                            <div class="system-msg-text">
+                                <span x-text="msg.message"></span>
+                            </div>
+                        </div>
+                    </template>
+                </template>
+                    <!-- Normal message -->
+                    <template x-if="msg.type !== 'system'">
                     <div class="message-row" :class="msg.sender_id === currentUserId ? 'msg-outgoing' : 'msg-incoming'">
                         <div class="msg-bubble-container">
                             
@@ -390,7 +433,17 @@
                                 </button>
                             </template>
 
-                            <div class="msg-bubble-wrapper" style="position: relative;">
+                            <div class="msg-bubble-wrapper" style="position: relative;" @dblclick="quickReact(msg)">
+                                <!-- Quick React Popup -->
+                                <div class="quick-react-popup" x-show="msg._quickReact" x-transition:enter="quick-react-enter" x-transition:leave="quick-react-leave">
+                                    <button type="button" @click.stop="addReaction('👍'); msg._quickReact = false">👍</button>
+                                    <button type="button" @click.stop="addReaction('❤️'); msg._quickReact = false">❤️</button>
+                                    <button type="button" @click.stop="addReaction('😂'); msg._quickReact = false">😂</button>
+                                    <button type="button" @click.stop="addReaction('😮'); msg._quickReact = false">😮</button>
+                                    <button type="button" @click.stop="addReaction('😢'); msg._quickReact = false">😢</button>
+                                    <button type="button" @click.stop="addReaction('🙏'); msg._quickReact = false">🙏</button>
+                                </div>
+
                                 <!-- Message dropdown trigger -->
                                 <button type="button" class="msg-dropdown-trigger-btn" @click.stop="showMessageContextMenu($event, msg)">
                                     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
@@ -558,9 +611,9 @@
                            class="footer-input-field">
                     
                     <!-- Send Button -->
-                    <button type="submit" class="footer-icon-btn send-msg-btn" x-show="newMessageText.trim() || selectedFile" title="Send">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    <button type="submit" class="send-msg-btn" x-show="newMessageText.trim() || selectedFile" title="Send">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                            <path d="M1.101 21.757 23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"/>
                         </svg>
                     </button>
 
@@ -586,25 +639,133 @@
     <div class="user-detail-overlay-panel" x-show="showUserDetail" style="display: none;">
         <header class="detail-header">
             <button class="close-detail-btn" @click="showUserDetail = false">×</button>
-            <h3>Contact Info</h3>
+            <h3 x-text="activeUser && activeUser.is_group ? 'Group info' : 'Contact Info'"></h3>
         </header>
-        <div class="detail-body-content">
-            <div class="detail-avatar-container">
-                <img :src="activeUser ? activeUser.avatar : ''" alt="" class="detail-avatar-large">
-                <h2 x-text="activeUser ? activeUser.name : ''"></h2>
-                <p x-text="activeUser ? activeUser.phone : ''"></p>
+        <div class="detail-body-content" style="overflow-y: auto; height: calc(100% - 59px);">
+            <!-- Group Info -->
+            <template x-if="activeUser && activeUser.is_group">
+                <div>
+                    <!-- Group Avatar & Name -->
+                    <div class="detail-avatar-container" style="position: relative; cursor: pointer;" @click="triggerGroupIconUpload()">
+                        <input type="file" id="groupIconInput" accept="image/*" @change="uploadGroupIcon($event)" style="display: none;">
+                        <img :src="activeUser.avatar" alt="" class="detail-avatar-large" style="width: 200px; height: 200px;">
+                        <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.5); border-radius: 50%; padding: 8px;">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Editable Group Name -->
+                    <div class="detail-section" style="padding: 16px;">
+                        <label style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; display: block;">Group name</label>
+                        <div x-show="!editingGroupName" @click="editingGroupName = true" style="font-size: 16px; color: var(--text-primary); cursor: pointer; padding: 8px 0; border-bottom: 1px solid var(--border-color);" x-text="activeUser.name"></div>
+                        <div x-show="editingGroupName" style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" x-model="editingGroupNameValue" @keydown.enter="saveGroupName()" @keydown.escape="editingGroupName = false"
+                                style="flex: 1; padding: 8px; border: 1px solid var(--wa-green); border-radius: 4px; font-size: 16px; background: var(--input-bg); color: var(--text-primary);">
+                            <button type="button" @click="saveGroupName()" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="#00a884"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Group Description -->
+                    <div class="detail-section" style="padding: 0 16px 16px;">
+                        <label style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; display: block;">Group description</label>
+                        <div x-show="!editingGroupDesc" @click="editingGroupDesc = true" style="font-size: 14px; color: var(--text-primary); cursor: pointer; padding: 8px 0; border-bottom: 1px solid var(--border-color);" x-text="activeUser.group_description || 'Add group description'"></div>
+                        <div x-show="editingGroupDesc" style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" x-model="editingGroupDescValue" @keydown.enter="saveGroupDesc()" @keydown.escape="editingGroupDesc = false"
+                                style="flex: 1; padding: 8px; border: 1px solid var(--wa-green); border-radius: 4px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);">
+                            <button type="button" @click="saveGroupDesc()" style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="#00a884"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Members Section -->
+                    <div class="detail-section" style="padding: 0 16px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-size: 13px; color: var(--text-secondary);">Members</label>
+                            <button type="button" @click="showAddMembersModal = true; contactSearchQuery = ''; searchContacts()"
+                                style="background: none; border: none; cursor: pointer; padding: 4px; color: #00a884; font-size: 14px; display: flex; align-items: center; gap: 4px;">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="#00a884"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                Add
+                            </button>
+                        </div>
+                        <template x-if="activeUser && activeUser.members">
+                            <div>
+                                <template x-for="memberId in activeUser.members" :key="memberId">
+                                    <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                                        <img :src="getMemberAvatar(memberId)" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px;">
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 14px; color: var(--text-primary);" x-text="getMemberName(memberId)"></div>
+                                            <div style="font-size: 12px; color: var(--text-secondary);" x-text="memberId === currentUserId ? 'You' : (memberId === activeUser.admin_id ? 'Group admin' : 'Member')"></div>
+                                        </div>
+                                        <button type="button" x-show="memberId !== currentUserId" @click="removeGroupMember(memberId)"
+                                            style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="#ea4335"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Mute / Exit Group -->
+                    <div class="detail-section" style="padding: 0 16px 16px;">
+                        <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); cursor: pointer;" @click="toggleMuteChat(activeUser)">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--text-primary)" style="margin-right: 16px;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                            <span style="font-size: 14px; color: var(--text-primary);" x-text="activeUser.is_muted ? 'Unmute notifications' : 'Mute notifications'"></span>
+                        </div>
+                        <div style="display: flex; align-items: center; padding: 12px 0; cursor: pointer; color: #ea4335;" @click="exitGroup()">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="#ea4335" style="margin-right: 16px;"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                            <span style="font-size: 14px;">Exit group</span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Normal Contact Info (non-group) -->
+            <template x-if="activeUser && !activeUser.is_group">
+                <div>
+                    <div class="detail-avatar-container">
+                        <img :src="activeUser ? activeUser.avatar : ''" alt="" class="detail-avatar-large">
+                        <h2 x-text="activeUser ? activeUser.name : ''"></h2>
+                        <p x-text="activeUser ? activeUser.phone : ''"></p>
+                    </div>
+                    <hr class="detail-divider">
+                    <div class="detail-section">
+                        <label>About</label>
+                        <div class="detail-about-txt" x-text="activeUser ? activeUser.about : ''"></div>
+                    </div>
+                    <div class="detail-section">
+                        <label>Email Address</label>
+                        <div class="detail-email-txt" x-text="activeUser ? activeUser.email : ''"></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Add Members Modal -->
+    <div class="modal-backdrop" x-show="showAddMembersModal" style="display: none;" @click.self="showAddMembersModal = false">
+        <div class="modal-card-container" @click.away="showAddMembersModal = false" style="max-height: 70vh;">
+            <header class="modal-card-header">
+                <button class="close-modal-btn" @click="showAddMembersModal = false" style="margin-right: 12px;">←</button>
+                <h2>Add members</h2>
+            </header>
+            <div class="modal-search-wrapper">
+                <input type="text" placeholder="Search contacts..." x-model="contactSearchQuery" @input="searchContacts()" class="modal-search-input">
             </div>
-            
-            <hr class="detail-divider">
-            
-            <div class="detail-section">
-                <label>About</label>
-                <div class="detail-about-txt" x-text="activeUser ? activeUser.about : ''"></div>
-            </div>
-            
-            <div class="detail-section">
-                <label>Email Address</label>
-                <div class="detail-email-txt" x-text="activeUser ? activeUser.email : ''"></div>
+            <div class="modal-contacts-list">
+                <template x-for="contact in contactList" :key="contact.id">
+                    <div class="contact-list-item" @click="addGroupMember(contact)" style="cursor: pointer;">
+                        <img :src="contact.avatar" alt="" class="contact-avatar">
+                        <div class="contact-info">
+                            <span class="contact-name" x-text="contact.name"></span>
+                            <span class="contact-about" x-text="contact.about"></span>
+                        </div>
+                    </div>
+                </template>
+                <div class="empty-list-placeholder" x-show="contactList.length === 0">No contacts found.</div>
             </div>
         </div>
     </div>
@@ -710,6 +871,133 @@
             </div>
         </div>
     </div>
+
+    <!-- New Group Modal -->
+    <div class="modal-backdrop" x-show="showNewGroupModal" style="display: none;" @click.self="showNewGroupModal = false; newGroupName = ''; newGroupSelectedUsers = []">
+        <div class="modal-card-container" @click.away="showNewGroupModal = false; newGroupName = ''; newGroupSelectedUsers = []">
+            <header class="modal-card-header">
+                <button class="close-modal-btn" @click="showNewGroupModal = false; newGroupName = ''; newGroupSelectedUsers = []" style="margin-right: 12px;">←</button>
+                <h2>New group</h2>
+            </header>
+            <!-- Group name input -->
+            <div class="modal-search-wrapper">
+                <input type="text" placeholder="Group subject (optional)" x-model="newGroupName" class="modal-search-input">
+            </div>
+            <!-- Add participants label -->
+            <div style="padding: 10px 16px; font-size: 14px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color);">
+                Add participants
+            </div>
+            <!-- Selected users chips -->
+            <div class="selected-users-chips" x-show="newGroupSelectedUsers.length > 0" x-cloak
+                style="padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--border-color);">
+                <template x-for="u in newGroupSelectedUsers" :key="u.id">
+                    <span class="user-chip" style="display: inline-flex; align-items: center; gap: 4px; background: #e7f0ed; color: #008069; padding: 4px 8px; border-radius: 16px; font-size: 13px;">
+                        <span x-text="u.name"></span>
+                        <button type="button" @click="newGroupSelectedUsers = newGroupSelectedUsers.filter(x => x.id !== u.id)" style="background: none; border: none; cursor: pointer; color: #008069; font-weight: bold; padding: 0 2px;">×</button>
+                    </span>
+                </template>
+            </div>
+            <!-- Contact search -->
+            <div class="modal-search-wrapper">
+                <input type="text" placeholder="Search contacts..." x-model="contactSearchQuery" @input="searchContacts()" class="modal-search-input">
+            </div>
+            <!-- Contact list with checkboxes -->
+            <div class="modal-contacts-list">
+                <template x-for="contact in contactList" :key="contact.id">
+                    <div class="contact-list-item" @click="toggleGroupUser(contact)" style="cursor: pointer;">
+                        <input type="checkbox" :checked="newGroupSelectedUsers.some(u => u.id === contact.id)" style="margin-right: 10px; accent-color: #00a884; width: 18px; height: 18px;">
+                        <img :src="contact.avatar" alt="" class="contact-avatar">
+                        <div class="contact-info">
+                            <span class="contact-name" x-text="contact.name"></span>
+                            <span class="contact-about" x-text="contact.about"></span>
+                        </div>
+                    </div>
+                </template>
+                <div class="empty-list-placeholder" x-show="contactList.length === 0">No contacts found.</div>
+            </div>
+            <!-- Create button -->
+            <div style="padding: 12px 16px; border-top: 1px solid var(--border-color); text-align: right;">
+                <button type="button" @click="createGroup()" :disabled="newGroupSelectedUsers.length === 0"
+                    style="background: #00a884; color: white; border: none; border-radius: 8px; padding: 8px 20px; font-size: 14px; cursor: pointer; opacity: 0.5;"
+                    :style="newGroupSelectedUsers.length > 0 ? 'opacity: 1' : ''">
+                    Create group
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Starred Messages Modal -->
+    <div class="modal-backdrop" x-show="showStarredModal" style="display: none;" @click.self="showStarredModal = false">
+        <div class="modal-card-container" @click.away="showStarredModal = false" style="max-height: 70vh;">
+            <header class="modal-card-header">
+                <h2>Starred messages</h2>
+                <button class="close-modal-btn" @click="showStarredModal = false">×</button>
+            </header>
+            <div class="modal-contacts-list" style="overflow-y: auto;">
+                <template x-for="starredMsg in getAllStarredMessages()" :key="starredMsg.id">
+                    <div class="contact-list-item" @click="showStarredModal = false; selectChat(starredMsg.chatId)" style="cursor: pointer; align-items: flex-start; padding: 12px 16px;">
+                        <img :src="starredMsg.chatAvatar" alt="" class="contact-avatar" style="width: 40px; height: 40px;">
+                        <div class="contact-info">
+                            <span class="contact-name" x-text="starredMsg.chatName" style="font-size: 13px;"></span>
+                            <span style="font-size: 14px; color: var(--text-primary); display: block; margin-top: 2px;" x-text="starredMsg.message"></span>
+                            <span style="font-size: 12px; color: var(--text-secondary);" x-text="starredMsg.time"></span>
+                        </div>
+                    </div>
+                </template>
+                <div class="empty-list-placeholder" x-show="getAllStarredMessages().length === 0">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width: 80px; height: 80px; color: var(--text-secondary); opacity: 0.4; margin-bottom: 16px;">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                    <p style="font-size: 14px; color: var(--text-secondary);">No starred messages</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Lock Modal -->
+    <div class="modal-backdrop" x-show="showAppLockModal" style="display: none;" @click.self="showAppLockModal = false; appLockPin = ''; appLockConfirmPin = ''; appLockError = ''">
+        <div class="modal-card-container" @click.away="showAppLockModal = false; appLockPin = ''; appLockConfirmPin = ''; appLockError = ''" style="max-width: 400px;">
+            <header class="modal-card-header">
+                <h2>App lock</h2>
+                <button class="close-modal-btn" @click="showAppLockModal = false; appLockPin = ''; appLockConfirmPin = ''; appLockError = ''">×</button>
+            </header>
+            <div style="padding: 24px 16px; text-align: center;">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 64px; height: 64px; color: #00a884; margin-bottom: 16px;">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                </svg>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Set a PIN to lock WhatsApp on this device</p>
+
+                <div x-show="!appLockEnabled" style="display: none;">
+                    <div style="margin-bottom: 12px;">
+                        <input type="password" x-model="appLockPin" placeholder="Enter 4-digit PIN" maxlength="4"
+                            style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; text-align: center; letter-spacing: 8px; background: var(--input-bg); color: var(--text-primary); box-sizing: border-box;">
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <input type="password" x-model="appLockConfirmPin" placeholder="Confirm PIN" maxlength="4"
+                            style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; text-align: center; letter-spacing: 8px; background: var(--input-bg); color: var(--text-primary); box-sizing: border-box;">
+                    </div>
+                    <p x-show="appLockError" x-text="appLockError" style="color: #ea4335; font-size: 13px; margin-bottom: 12px;"></p>
+                    <button type="button" @click="enableAppLock()"
+                        style="background: #00a884; color: white; border: none; border-radius: 8px; padding: 10px 28px; font-size: 14px; cursor: pointer; width: 100%;">
+                        Enable
+                    </button>
+                </div>
+
+                <div x-show="appLockEnabled" style="display: none;">
+                    <p style="font-size: 14px; color: #00a884; margin-bottom: 16px;">App lock is enabled</p>
+                    <div style="margin-bottom: 12px;">
+                        <input type="password" x-model="appLockPin" placeholder="Enter current PIN" maxlength="4"
+                            style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; text-align: center; letter-spacing: 8px; background: var(--input-bg); color: var(--text-primary); box-sizing: border-box;">
+                    </div>
+                    <p x-show="appLockError" x-text="appLockError" style="color: #ea4335; font-size: 13px; margin-bottom: 12px;"></p>
+                    <button type="button" @click="disableAppLock()"
+                        style="background: #ea4335; color: white; border: none; border-radius: 8px; padding: 10px 28px; font-size: 14px; cursor: pointer; width: 100%;">
+                        Disable
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -758,6 +1046,15 @@
                 this.showUserDetail = false;
                 this.showEmojis = false;
                 this.showForwardModal = false;
+                this.showNewGroupModal = false;
+                this.showStarredModal = false;
+                this.showAppLockModal = false;
+                this.appLockPin = '';
+                this.appLockConfirmPin = '';
+                this.appLockError = '';
+                this.newGroupName = '';
+                this.newGroupSelectedUsers = [];
+                // Don't exit selectMode here - user may want to keep selecting
             },
 
             // Message actions
@@ -779,6 +1076,13 @@
 
             starMessage(msg) {
                 msg.is_starred = !msg.is_starred;
+                if (msg.is_starred) {
+                    if (!this.starredMessages.find(m => m.id === msg.id)) {
+                        this.starredMessages.push({ ...msg });
+                    }
+                } else {
+                    this.starredMessages = this.starredMessages.filter(m => m.id !== msg.id);
+                }
                 this.msgContextMenuItem = null;
             },
 
@@ -823,11 +1127,13 @@
             markAsRead(chat) {
                 chat.unreadCount = 0;
                 this.chatContextMenuItem = null;
+                this.updateDocumentTitle();
             },
 
             markAllAsRead() {
                 this.chatPreviews.forEach(c => c.unreadCount = 0);
                 this.showChatsMenu = false;
+                this.updateDocumentTitle();
             },
 
             togglePinChat(chat) {
@@ -867,6 +1173,242 @@
             clearChatMessages(chat) {
                 this.messages = [];
                 this.chatContextMenuItem = null;
+            },
+
+            // ============ SELECT MODE ============
+            toggleSelectMode() {
+                this.selectMode = !this.selectMode;
+                if (!this.selectMode) {
+                    this.selectedChats = [];
+                }
+            },
+
+            exitSelectMode() {
+                this.selectMode = false;
+                this.selectedChats = [];
+            },
+
+            toggleChatSelection(chat) {
+                if (!this.selectMode) return;
+                const idx = this.selectedChats.findIndex(c => c.id === chat.id);
+                if (idx > -1) {
+                    this.selectedChats.splice(idx, 1);
+                } else {
+                    this.selectedChats.push(chat);
+                }
+            },
+
+            deleteSelectedChats() {
+                if (!confirm('Delete ' + this.selectedChats.length + ' chat(s)?')) return;
+                const ids = this.selectedChats.map(c => c.id);
+                this.chatPreviews = this.chatPreviews.filter(c => !ids.includes(c.id));
+                if (this.activeUser && ids.includes(this.activeUser.id)) this.activeUser = null;
+                this.exitSelectMode();
+                this.filterChats();
+            },
+
+            archiveSelectedChats() {
+                this.selectedChats.forEach(chat => {
+                    chat.is_archived = true;
+                });
+                this.exitSelectMode();
+                this.filterChats();
+            },
+
+            // ============ NEW GROUP ============
+            toggleGroupUser(contact) {
+                const idx = this.newGroupSelectedUsers.findIndex(u => u.id === contact.id);
+                if (idx > -1) {
+                    this.newGroupSelectedUsers.splice(idx, 1);
+                } else {
+                    this.newGroupSelectedUsers.push(contact);
+                }
+            },
+
+            createGroup() {
+                if (this.newGroupSelectedUsers.length === 0) return;
+                const name = this.newGroupName.trim() || this.newGroupSelectedUsers.map(u => u.name).join(', ');
+                const ids = this.newGroupSelectedUsers.map(u => u.id).join(',');
+                const memberNames = this.newGroupSelectedUsers.map(u => u.name).join(', ');
+                const groupAvatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=00a884&color=fff&size=80';
+
+                this.showNewGroupModal = false;
+                this.newGroupName = '';
+                this.newGroupSelectedUsers = [];
+                this.contactSearchQuery = '';
+
+                // Save to DB first
+                axios.post('/chat/group/create', { name: name, members: ids })
+                    .then(res => {
+                        if (res.data.success) {
+                            const g = res.data.group;
+                            const groupId = 'group_' + g.id;
+                            const groupItem = {
+                                id: groupId,
+                                name: g.name,
+                                avatar: groupAvatar,
+                                about: 'Group · ' + memberNames,
+                                is_online: false,
+                                is_group: true,
+                                group_db_id: g.id,
+                                admin_id: g.admin_id,
+                                members: g.member_ids,
+                                group_description: g.description || '',
+                                status_text: g.member_ids.length + ' members',
+                                unreadCount: 0,
+                                is_typing: false,
+                                last_message_preview: '',
+                                last_message_time: '',
+                                last_message_sender_self: false,
+                                last_message_tick: '',
+                                last_message_timestamp: 0,
+                                is_archived: false, is_muted: false, is_pinned: false, is_favorited: false, is_blocked: false,
+                            };
+                            this.chatPreviews.unshift(groupItem);
+                            this.filterChats();
+                            this.selectChat(groupId);
+                            this.$nextTick(() => {
+                                this.loadInitialMessages();
+                            });
+                        }
+                    })
+                    .catch(() => {});
+            },
+
+            // ============ GROUP MANAGEMENT ============
+            getMemberName(memberId) {
+                if (memberId === this.currentUserId) return this.myUserName;
+                const chat = this.chatPreviews.find(c => c.id === memberId);
+                if (chat) return chat.name;
+                const contact = this.contactList.find(c => c.id === memberId);
+                if (contact) return contact.name;
+                return 'User ' + memberId;
+            },
+
+            getMemberAvatar(memberId) {
+                if (memberId === this.currentUserId) {
+                    return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(this.myUserName) + '&background=128C7E&color=fff&size=80';
+                }
+                const chat = this.chatPreviews.find(c => c.id === memberId);
+                if (chat) return chat.avatar;
+                return 'https://ui-avatars.com/api/?name=U&background=128C7E&color=fff&size=80';
+            },
+
+            triggerGroupIconUpload() {
+                document.getElementById('groupIconInput').click();
+            },
+
+            uploadGroupIcon(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.activeUser.avatar = e.target.result;
+                    this.reorderChatPreviews();
+                };
+                reader.readAsDataURL(file);
+            },
+
+            saveGroupName() {
+                if (!this.editingGroupNameValue.trim()) return;
+                this.activeUser.name = this.editingGroupNameValue.trim();
+                this.editingGroupName = false;
+                this.reorderChatPreviews();
+                this.addSystemMessage('Group name changed to "' + this.activeUser.name + '"');
+            },
+
+            saveGroupDesc() {
+                this.activeUser.group_description = this.editingGroupDescValue.trim();
+                this.editingGroupDesc = false;
+            },
+
+            addGroupMember(contact) {
+                if (!this.activeUser || !this.activeUser.is_group) return;
+                if (!this.activeUser.members) this.activeUser.members = [];
+                if (this.activeUser.members.includes(contact.id)) return;
+                this.activeUser.members.push(contact.id);
+                this.showAddMembersModal = false;
+                this.addSystemMessage(contact.name + ' was added');
+            },
+
+            removeGroupMember(memberId) {
+                if (!this.activeUser || !this.activeUser.is_group) return;
+                if (!confirm('Remove ' + this.getMemberName(memberId) + ' from the group?')) return;
+                this.activeUser.members = this.activeUser.members.filter(id => id !== memberId);
+                this.addSystemMessage(this.getMemberName(memberId) + ' was removed');
+            },
+
+            exitGroup() {
+                if (!this.activeUser || !this.activeUser.is_group) return;
+                if (!confirm('Exit this group?')) return;
+                this.addSystemMessage('You left the group');
+                this.chatPreviews = this.chatPreviews.filter(c => c.id !== this.activeUser.id);
+                this.activeUser = null;
+                this.showUserDetail = false;
+                this.filterChats();
+            },
+
+            addSystemMessage(text) {
+                this.messages.push({
+                    id: 'sys_' + Date.now(),
+                    sender_id: this.currentUserId,
+                    message: text,
+                    type: 'system',
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    tick_html: '',
+                });
+                this.$nextTick(() => this.scrollToBottom());
+            },
+            getAllStarredMessages() {
+                const starred = [];
+                // From dedicated starred array
+                this.starredMessages.forEach(msg => {
+                    const chat = this.chatPreviews.find(c => c.id === msg.sender_id || c.id === msg.receiver_id);
+                    if (chat && !starred.find(s => s.id === msg.id)) {
+                        starred.push({ ...msg, chatName: chat.name, chatAvatar: chat.avatar, chatId: chat.id });
+                    }
+                });
+                // Also check current loaded messages for starred ones
+                this.messages.forEach(msg => {
+                    if (msg.is_starred && !starred.find(s => s.id === msg.id)) {
+                        const chat = this.chatPreviews.find(c => c.id === msg.sender_id || c.id === msg.receiver_id);
+                        if (chat) {
+                            starred.push({ ...msg, chatName: chat.name, chatAvatar: chat.avatar, chatId: chat.id });
+                        }
+                    }
+                });
+                return starred;
+            },
+
+            // ============ APP LOCK ============
+            enableAppLock() {
+                this.appLockError = '';
+                if (this.appLockPin.length !== 4 || !/^\d{4}$/.test(this.appLockPin)) {
+                    this.appLockError = 'PIN must be 4 digits';
+                    return;
+                }
+                if (this.appLockPin !== this.appLockConfirmPin) {
+                    this.appLockError = 'PINs do not match';
+                    return;
+                }
+                localStorage.setItem('appLockPin', this.appLockPin);
+                this.appLockEnabled = true;
+                this.appLockPin = '';
+                this.appLockConfirmPin = '';
+                alert('App lock enabled!');
+            },
+
+            disableAppLock() {
+                this.appLockError = '';
+                const storedPin = localStorage.getItem('appLockPin');
+                if (this.appLockPin !== storedPin) {
+                    this.appLockError = 'Incorrect PIN';
+                    return;
+                }
+                localStorage.removeItem('appLockPin');
+                this.appLockEnabled = false;
+                this.appLockPin = '';
+                alert('App lock disabled!');
             },
             
             showChatContextMenu(e, chat) {
@@ -919,6 +1461,12 @@
                 this.msgContextMenuItem = msg;
             },
             
+            // Message actions
+            quickReact(msg) {
+                msg._quickReact = true;
+                setTimeout(() => { msg._quickReact = false; }, 3000);
+            },
+
             addReaction(emoji) {
                 if (this.msgContextMenuItem) {
                     this.msgContextMenuItem.reaction = emoji;
@@ -953,7 +1501,34 @@
                     last_message_time: '{{ $user->lastMessage ? $user->lastMessage->timeFormatted() : "" }}',
                     last_message_sender_self: {{ ($user->lastMessage && $user->lastMessage->sender_id === Auth::id()) ? 'true' : 'false' }},
                     last_message_tick: '{!! $user->lastMessage ? $user->lastMessage->tickHtml() : "" !!}',
-                    last_message_timestamp: {{ $user->lastMessage ? $user->lastMessage->created_at->timestamp : 0 }}
+                    last_message_timestamp: {{ $user->lastMessage ? $user->lastMessage->created_at->timestamp : 0 }},
+                    is_archived: false, is_muted: false, is_pinned: false, is_favorited: false, is_blocked: false,
+                    is_group: false,
+                },
+                @endforeach
+                @foreach($groups as $group)
+                {
+                    id: 'group_{{ $group->id }}',
+                    name: '{{ addslashes($group->name) }}',
+                    avatar: '{{ $group->avatar ?: "https://ui-avatars.com/api/?name=" . urlencode($group->name) . "&background=00a884&color=fff&size=80" }}',
+                    email: '',
+                    phone: '',
+                    about: 'Group · {{ addslashes($group->description ?? "") }}',
+                    is_online: false,
+                    status_text: '{{ $group->members->count() }} members',
+                    unreadCount: 0,
+                    is_typing: false,
+                    last_message_preview: '{{ addslashes(Str::limit($group->last_message_preview, 30)) }}',
+                    last_message_time: '{{ $group->last_message_time }}',
+                    last_message_sender_self: {{ $group->last_message_sender_self ? 'true' : 'false' }},
+                    last_message_tick: '',
+                    last_message_timestamp: {{ $group->lastMessage ? $group->lastMessage->created_at->timestamp : 0 }},
+                    is_archived: false, is_muted: false, is_pinned: false, is_favorited: false, is_blocked: false,
+                    is_group: true,
+                    group_db_id: {{ $group->id }},
+                    admin_id: {{ $group->admin_id }},
+                    members: {!! json_encode($group->member_ids) !!},
+                    group_description: '{{ addslashes($group->description ?? "") }}',
                 },
                 @endforeach
             ],
@@ -963,11 +1538,33 @@
             messages: [],
             emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟'],
             
+            // Polling fallback for new messages
+            lastPollMessageId: 0,
+            pollGlobalLastId: 0,
+            pollInterval: null,
+            
             typingTimeout: null,
             lastTypingEventTime: 0,
             replyToMessage: null,
             forwardMessage: null,
             showForwardModal: false,
+            showNewGroupModal: false,
+            showStarredModal: false,
+            showAppLockModal: false,
+            selectMode: false,
+            selectedChats: [],
+            starredMessages: [],
+            newGroupName: '',
+            newGroupSelectedUsers: [],
+            appLockPin: '',
+            appLockConfirmPin: '',
+            appLockError: '',
+            appLockEnabled: false,
+            editingGroupName: false,
+            editingGroupNameValue: '',
+            editingGroupDesc: false,
+            editingGroupDescValue: '',
+            showAddMembersModal: false,
 
             initChat() {
                 window.chatAppInstance = this;
@@ -988,6 +1585,25 @@
 
                 // Listen to real-time events
                 this.setupWebSocketListeners();
+
+                // Start polling fallback for new messages (every 3 seconds)
+                this.startPolling();
+
+                // Update title with unread count
+                this.updateDocumentTitle();
+
+                // Init app lock state from localStorage
+                this.appLockEnabled = !!localStorage.getItem('appLockPin');
+
+                // Init audio context and request notification permission on first user gesture
+                const firstClick = () => {
+                    document.removeEventListener('click', firstClick);
+                    document.removeEventListener('touchstart', firstClick);
+                    this.initAudio();
+                    this.requestNotificationPermission();
+                };
+                document.addEventListener('click', firstClick);
+                document.addEventListener('touchstart', firstClick);
             },
 
             setFilter(filterName) {
@@ -997,6 +1613,192 @@
 
             unreadTotalCount() {
                 return this.chatPreviews.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
+            },
+
+            // ============ NOTIFICATIONS ============
+
+            // Shared AudioContext that resumes on user gesture
+            audioCtx: null,
+
+            initAudio() {
+                try {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (this.audioCtx.state === 'suspended') {
+                        this.audioCtx.resume();
+                    }
+                } catch (e) {}
+            },
+
+            requestNotificationPermission() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            },
+
+            playNotificationSound() {
+                try {
+                    if (!this.audioCtx) {
+                        this.initAudio();
+                    }
+                    if (!this.audioCtx || this.audioCtx.state === 'closed') {
+                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (this.audioCtx.state === 'suspended') {
+                        this.audioCtx.resume();
+                    }
+                    const ctx = this.audioCtx;
+                    
+                    const osc1 = ctx.createOscillator();
+                    const gain1 = ctx.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(880, ctx.currentTime);
+                    osc1.frequency.setValueAtTime(660, ctx.currentTime + 0.08);
+                    gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                    osc1.connect(gain1);
+                    gain1.connect(ctx.destination);
+                    osc1.start(ctx.currentTime);
+                    osc1.stop(ctx.currentTime + 0.25);
+
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(1100, ctx.currentTime + 0.12);
+                    osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+                    gain2.gain.setValueAtTime(0, ctx.currentTime);
+                    gain2.gain.setValueAtTime(0.25, ctx.currentTime + 0.12);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.38);
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.start(ctx.currentTime + 0.12);
+                    osc2.stop(ctx.currentTime + 0.38);
+                } catch (e) {}
+            },
+
+            showBrowserNotification(senderId, senderName, messageText) {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    // Don't notify if user is actively chatting with THIS sender
+                    if (document.hasFocus() && this.activeUser && this.activeUser.id === senderId) return;
+
+                    const notif = new Notification(senderName, {
+                        body: messageText,
+                        icon: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(senderName) + '&background=25D366&color=fff&size=80',
+                        badge: 'https://ui-avatars.com/api/?name=W&background=25D366&color=fff&size=80',
+                        tag: 'whatsapp-msg',
+                        renotify: true,
+                        requireInteraction: false,
+                    });
+
+                    notif.onclick = function() {
+                        window.focus();
+                        notif.close();
+                    };
+
+                    setTimeout(() => notif.close(), 5000);
+                }
+            },
+
+            updateDocumentTitle() {
+                const count = this.unreadTotalCount();
+                document.title = count > 0 ? `(${count}) WhatsApp` : 'WhatsApp — Chats';
+            },
+
+            // ============ POLLING FALLBACK ============
+            startPolling() {
+                this.pollInterval = setInterval(() => {
+                    this.pollNewMessages();
+                }, 3000);
+            },
+
+            pollNewMessages() {
+                if (this.activeUser) {
+                    this.pollActiveUserMessages();
+                } else {
+                    this.pollGlobalMessages();
+                }
+            },
+
+            pollGlobalLastId: 0,
+
+            pollActiveUserMessages() {
+                if (!this.activeUser) return;
+                
+                axios.get(`/chat/new/${this.activeUser.id}/${this.lastPollMessageId}`)
+                    .then(res => {
+                        const newMsgs = res.data.messages;
+                        if (!newMsgs || newMsgs.length === 0) return;
+
+                        newMsgs.forEach(msg => {
+                            if (msg.sender_id === this.currentUserId) return;
+                            const exists = this.messages.find(m => m.id === msg.id);
+                            if (exists) return;
+
+                            msg.tick_html = '';
+                            this.messages.push(msg);
+                            
+                            if (msg.id > this.lastPollMessageId) {
+                                this.lastPollMessageId = msg.id;
+                            }
+
+                            this.playNotificationSound();
+                            const chatItem = this.chatPreviews.find(c => c.id === msg.sender_id);
+                            const senderName = chatItem ? chatItem.name : msg.sender_name || 'New Message';
+                            this.showBrowserNotification(msg.sender_id, senderName, msg.message || '📎 File');
+                            this.updateDocumentTitle();
+                        });
+
+                        this.scrollToBottom();
+                        
+                        const lastMsg = newMsgs[newMsgs.length - 1];
+                        const chatItem = this.chatPreviews.find(c => c.id === lastMsg.sender_id);
+                        if (chatItem) {
+                            chatItem.last_message_preview = lastMsg.type !== 'text' ? '📎 File' : lastMsg.message;
+                            chatItem.last_message_time = lastMsg.time;
+                            chatItem.last_message_sender_self = false;
+                            chatItem.last_message_timestamp = Math.floor(Date.now() / 1000);
+                            if (this.activeUser.id !== lastMsg.sender_id) {
+                                chatItem.unreadCount = (chatItem.unreadCount || 0) + 1;
+                            }
+                            this.reorderChatPreviews();
+                        }
+                    })
+                    .catch(() => {});
+            },
+
+            pollGlobalMessages() {
+                axios.get(`/chat/global-new/${this.pollGlobalLastId}`)
+                    .then(res => {
+                        const newMsgs = res.data.messages;
+                        if (!newMsgs || newMsgs.length === 0) return;
+
+                        const prevCount = this.unreadTotalCount();
+
+                        newMsgs.forEach(msg => {
+                            if (msg.sender_id === this.currentUserId) return;
+                            if (msg.id > this.pollGlobalLastId) {
+                                this.pollGlobalLastId = msg.id;
+                            }
+
+                            this.playNotificationSound();
+                            const chatItem = this.chatPreviews.find(c => c.id === msg.sender_id);
+                            const senderName = chatItem ? chatItem.name : msg.sender_name || 'New Message';
+                            this.showBrowserNotification(msg.sender_id, senderName, msg.message || '📎 File');
+
+                            if (chatItem) {
+                                chatItem.last_message_preview = msg.type !== 'text' ? '📎 File' : msg.message;
+                                chatItem.last_message_time = msg.time;
+                                chatItem.last_message_sender_self = false;
+                                chatItem.last_message_timestamp = Math.floor(Date.now() / 1000);
+                                chatItem.unreadCount = (chatItem.unreadCount || 0) + 1;
+                            }
+                            this.updateDocumentTitle();
+                        });
+
+                        if (this.unreadTotalCount() !== prevCount) {
+                            this.reorderChatPreviews();
+                        }
+                    })
+                    .catch(() => {});
             },
 
             filterChats() {
@@ -1016,7 +1818,7 @@
                 } else if (this.activeFilter === 'favorites') {
                     chats = chats.filter(chat => chat.is_favorited);
                 } else if (this.activeFilter === 'groups') {
-                    chats = [];
+                    chats = chats.filter(chat => chat.is_group);
                 } else if (this.activeFilter === 'communities') {
                     chats = [];
                 }
@@ -1027,12 +1829,19 @@
             },
 
             selectChat(userId) {
+                const targetUser = this.chatPreviews.find(u => u.id === userId);
+
+                // Select mode: toggle selection instead of opening chat
+                if (this.selectMode && targetUser) {
+                    this.toggleChatSelection(targetUser);
+                    return;
+                }
+
                 // Update URL parameter without reload
                 const url = new URL(window.location);
                 url.searchParams.set('user', userId);
                 window.history.pushState({}, '', url);
 
-                const targetUser = this.chatPreviews.find(u => u.id === userId);
                 if (targetUser) {
                     this.activeUser = targetUser;
                     this.activeUser.unreadCount = 0;
@@ -1040,17 +1849,47 @@
                     this.newMessageText = '';
                     this.selectedFile = null;
                     this.hasMoreMessages = true;
+                    this.messages = [];
                     this.loadInitialMessages();
-                    this.markMessagesAsSeen(userId);
+                    this.updateDocumentTitle();
+                    this.requestNotificationPermission();
                 }
             },
 
             loadInitialMessages() {
+                if (!this.activeUser) return;
+
+                // Group chat: load from group endpoint
+                if (this.activeUser.is_group) {
+                    const groupId = this.activeUser.group_db_id;
+                    if (!groupId) return;
+                    axios.get(`/chat/group/${groupId}/messages`)
+                        .then(response => {
+                            this.messages = response.data.messages;
+                            this.scrollToBottom();
+                            if (this.messages.length > 0) {
+                                const maxId = Math.max(...this.messages.map(m => m.id));
+                                this.lastPollMessageId = maxId;
+                                if (maxId > this.pollGlobalLastId) this.pollGlobalLastId = maxId;
+                            }
+                        })
+                        .catch(error => console.error('Error loading group messages:', error));
+                    return;
+                }
+
+                // Normal chat
                 axios.get(`/chat/more/${this.activeUser.id}`)
                     .then(response => {
                         this.messages = response.data.messages;
                         this.hasMoreMessages = response.data.has_more;
                         this.scrollToBottom();
+                        if (this.messages.length > 0) {
+                            const maxId = Math.max(...this.messages.map(m => m.id));
+                            this.lastPollMessageId = maxId;
+                            if (maxId > this.pollGlobalLastId) {
+                                this.pollGlobalLastId = maxId;
+                            }
+                        }
                     })
                     .catch(error => {
                         console.error('Error loading initial messages:', error);
@@ -1176,6 +2015,12 @@
 
             toggleUserProfileDetail() {
                 this.showUserDetail = !this.showUserDetail;
+                if (this.showUserDetail && this.activeUser && this.activeUser.is_group) {
+                    this.editingGroupName = false;
+                    this.editingGroupNameValue = this.activeUser.name;
+                    this.editingGroupDesc = false;
+                    this.editingGroupDescValue = this.activeUser.group_description || '';
+                }
             },
 
             openLightbox(url) {
@@ -1191,24 +2036,53 @@
             submitMessage() {
                 if (!this.newMessageText.trim() && !this.selectedFile) return;
 
-                const formData = new FormData();
-                formData.append('receiver_id', this.activeUser.id);
-                
-                if (this.newMessageText.trim()) {
-                    formData.append('message', this.newMessageText.trim());
-                }
-                if (this.selectedFile) {
-                    formData.append('file', this.selectedFile);
-                }
-                if (this.replyToMessage) {
-                    formData.append('reply_to_id', this.replyToMessage.id);
-                }
-
                 const tempText = this.newMessageText;
                 this.newMessageText = '';
                 const fileSent = this.selectedFile;
                 this.cancelFileSelect();
                 this.replyToMessage = null;
+
+                // Group message
+                if (this.activeUser.is_group) {
+                    const groupId = this.activeUser.group_db_id;
+                    axios.post('/chat/group/send', {
+                        group_id: groupId,
+                        message: tempText,
+                    }).then(res => {
+                        if (res.data.success) {
+                            const newMsgObj = res.data.message;
+                            this.messages.push(newMsgObj);
+                            this.scrollToBottom();
+                            if (newMsgObj.id > this.lastPollMessageId) this.lastPollMessageId = newMsgObj.id;
+                            if (newMsgObj.id > this.pollGlobalLastId) this.pollGlobalLastId = newMsgObj.id;
+
+                            const chatItem = this.chatPreviews.find(c => c.id === this.activeUser.id);
+                            if (chatItem) {
+                                chatItem.last_message_preview = tempText;
+                                chatItem.last_message_time = newMsgObj.time;
+                                chatItem.last_message_sender_self = true;
+                                chatItem.last_message_tick = '';
+                                chatItem.last_message_timestamp = Math.floor(Date.now() / 1000);
+                                this.reorderChatPreviews();
+                            }
+                        }
+                    }).catch(err => console.error(err));
+                    return;
+                }
+
+                // Normal message
+                const formData = new FormData();
+                formData.append('receiver_id', this.activeUser.id);
+                
+                if (tempText.trim()) {
+                    formData.append('message', tempText.trim());
+                }
+                if (fileSent) {
+                    formData.append('file', fileSent);
+                }
+                if (this.replyToMessage) {
+                    formData.append('reply_to_id', this.replyToMessage.id);
+                }
 
                 axios.post('/chat/send', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
@@ -1219,6 +2093,12 @@
                         newMsgObj.sender_id = this.currentUserId;
                         this.messages.push(newMsgObj);
                         this.scrollToBottom();
+                        if (newMsgObj.id > this.lastPollMessageId) {
+                            this.lastPollMessageId = newMsgObj.id;
+                        }
+                        if (newMsgObj.id > this.pollGlobalLastId) {
+                            this.pollGlobalLastId = newMsgObj.id;
+                        }
                         
                         // Update chat item preview
                         const chatItem = this.chatPreviews.find(c => c.id === this.activeUser.id);
@@ -1286,6 +2166,29 @@
                             chatItem.last_message_timestamp = Math.floor(Date.now() / 1000);
                             this.reorderChatPreviews();
                         }
+
+                        // ============ TRIGGER NOTIFICATIONS ============
+                        // Find sender name
+                        const senderChat = this.chatPreviews.find(c => c.id === data.sender_id);
+                        const senderName = senderChat ? senderChat.name : 'New Message';
+                        const previewText = data.type !== 'text' ? '📎 File' : data.message;
+
+                        // Play sound
+                        this.playNotificationSound();
+
+                        // Show browser notification
+                        this.showBrowserNotification(data.sender_id, senderName, previewText);
+
+                        // Update title bar
+                        this.updateDocumentTitle();
+
+                        // Track latest message ID for polling
+                        if (data.id > this.lastPollMessageId) {
+                            this.lastPollMessageId = data.id;
+                        }
+                        if (data.id > this.pollGlobalLastId) {
+                            this.pollGlobalLastId = data.id;
+                        }
                     })
                     .listen('.TypingIndicator', (data) => {
                         const chatItem = this.chatPreviews.find(c => c.id === data.sender_id);
@@ -1303,10 +2206,10 @@
                                 if (msg.sender_id === this.currentUserId) {
                                     if (data.status === 'seen') {
                                         msg.status = 'seen';
-                                        msg.tick_html = '<span class="tick tick-seen" title="Seen">✔✔</span>';
+                                        msg.tick_html = '<svg class="tick-svg tick-seen" viewBox="0 0 16 11" width="16" height="11"><path d="M11.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-2.011-2.095a.463.463 0 0 0-.353-.145.47.47 0 0 0-.335.136.474.474 0 0 0-.016.678l2.375 2.459a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665z" fill="currentColor"/><path d="M15.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-1.2-1.251-.352.435 1.202 1.258a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665l-.088-.412z" fill="currentColor"/></svg>';
                                     } else if (data.status === 'delivered' && msg.status === 'sent') {
                                         msg.status = 'delivered';
-                                        msg.tick_html = '<span class="tick tick-delivered" title="Delivered">✔✔</span>';
+                                        msg.tick_html = '<svg class="tick-svg tick-delivered" viewBox="0 0 16 11" width="16" height="11"><path d="M11.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-2.011-2.095a.463.463 0 0 0-.353-.145.47.47 0 0 0-.335.136.474.474 0 0 0-.016.678l2.375 2.459a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665z" fill="currentColor"/><path d="M15.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-1.2-1.251-.352.435 1.202 1.258a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665l-.088-.412z" fill="currentColor"/></svg>';
                                     }
                                 }
                             });
@@ -1316,9 +2219,9 @@
                         const chatItem = this.chatPreviews.find(c => c.id === data.receiver_id);
                         if (chatItem) {
                             if (data.status === 'seen') {
-                                chatItem.last_message_tick = '<span class="tick tick-seen" title="Seen">✔✔</span>';
+                                chatItem.last_message_tick = '<svg class="tick-svg tick-seen" viewBox="0 0 16 11" width="16" height="11"><path d="M11.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-2.011-2.095a.463.463 0 0 0-.353-.145.47.47 0 0 0-.335.136.474.474 0 0 0-.016.678l2.375 2.459a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665z" fill="currentColor"/><path d="M15.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-1.2-1.251-.352.435 1.202 1.258a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665l-.088-.412z" fill="currentColor"/></svg>';
                             } else if (data.status === 'delivered') {
-                                chatItem.last_message_tick = '<span class="tick tick-delivered" title="Delivered">✔✔</span>';
+                                chatItem.last_message_tick = '<svg class="tick-svg tick-delivered" viewBox="0 0 16 11" width="16" height="11"><path d="M11.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-2.011-2.095a.463.463 0 0 0-.353-.145.47.47 0 0 0-.335.136.474.474 0 0 0-.016.678l2.375 2.459a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665z" fill="currentColor"/><path d="M15.071.653a.457.457 0 0 0-.304-.102-.493.493 0 0 0-.381.178l-6.19 7.636-1.2-1.251-.352.435 1.202 1.258a.447.447 0 0 0 .347.156h.014a.472.472 0 0 0 .352-.176l6.544-8.058a.448.448 0 0 0-.042-.665l-.088-.412z" fill="currentColor"/></svg>';
                             }
                         }
                     });

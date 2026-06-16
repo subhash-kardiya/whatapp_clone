@@ -48,7 +48,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
     Route::post('/chat/seen/{senderId}', [App\Http\Controllers\ChatController::class, 'markSeen'])->name('chat.seen');
     Route::get('/chat/more/{userId}', [App\Http\Controllers\ChatController::class, 'loadMore'])->name('chat.more');
+    Route::get('/chat/new/{userId}/{afterId}', [App\Http\Controllers\ChatController::class, 'loadNew'])->name('chat.new');
+    Route::get('/chat/global-new/{afterId}', [App\Http\Controllers\ChatController::class, 'loadAllNew'])->name('chat.new.global');
     Route::post('/chat/typing', [App\Http\Controllers\ChatController::class, 'typing'])->name('chat.typing');
+    Route::post('/chat/group/create', [App\Http\Controllers\ChatController::class, 'createGroup'])->name('chat.group.create');
+    Route::post('/chat/group/send', [App\Http\Controllers\ChatController::class, 'sendGroupMessage'])->name('chat.group.send');
+    Route::get('/chat/group/{groupId}/messages', [App\Http\Controllers\ChatController::class, 'loadGroupMessages'])->name('chat.group.messages');
 
     // User/Contact routes
     Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
