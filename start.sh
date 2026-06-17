@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Run migrations
-php artisan migrate --force
+php artisan migrate --force || true
 
 # Cache configs
 php artisan config:cache
