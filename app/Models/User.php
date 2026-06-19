@@ -58,6 +58,36 @@ class User extends Authenticatable
         return $this->hasMany(Status::class);
     }
 
+    public function ownedGroups()
+    {
+        return $this->hasMany(Group::class, 'admin_id');
+    }
+
+    public function memberGroups()
+    {
+        return $this->belongsToMany(Group::class, 'group_members')->withTimestamps();
+    }
+
+    public function ownedChannels()
+    {
+        return $this->hasMany(Channel::class, 'owner_id');
+    }
+
+    public function subscribedChannels()
+    {
+        return $this->belongsToMany(Channel::class, 'channel_subscribers')->withTimestamps();
+    }
+
+    public function ownedCommunities()
+    {
+        return $this->hasMany(Community::class, 'owner_id');
+    }
+
+    public function memberCommunities()
+    {
+        return $this->belongsToMany(Community::class, 'community_members')->withPivot('role')->withTimestamps();
+    }
+
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------

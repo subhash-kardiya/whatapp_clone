@@ -4,27 +4,39 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Message extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'sender_id',
         'receiver_id',
         'group_id',
+        'channel_id',
+        'community_id',
+        'reply_to_id',
         'message',
         'type',
         'status',
         'file_path',
         'file_name',
         'file_size',
+        'edited_at',
+        'deleted_for_everyone',
     ];
 
     protected function casts(): array
     {
         return [
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
+            'created_at'            => 'datetime',
+            'updated_at'            => 'datetime',
+            'edited_at'             => 'datetime',
+            'deleted_at'            => 'datetime',
+            'deleted_for_everyone'  => 'boolean',
         ];
     }
 
@@ -47,6 +59,26 @@ class Message extends Model
         return $this->belongsTo(Group::class);
     }
 
+    public function channel(): BelongsTo
+    {
+        return $this->belongsTo(Channel::class);
+    }
+
+    public function community(): BelongsTo
+    {
+        return $this->belongsTo(Community::class);
+    }
+
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(Message::class, 'reply_to_id');
+    }
+
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(MessageReaction::class);
+    }
+
     // -----------------------------------------------------------------------
     // Scopes
     // -----------------------------------------------------------------------
@@ -56,11 +88,16 @@ class Message extends Model
      */
     public function scopeConversation(Builder $query, int $userA, int $userB): Builder
     {
-        return $query->where(function ($q) use ($userA, $userB) {
-            $q->where('sender_id', $userA)->where('receiver_id', $userB);
-        })->orWhere(function ($q) use ($userA, $userB) {
-            $q->where('sender_id', $userB)->where('receiver_id', $userA);
-        });
+        return $query->whereNull('group_id')
+            ->whereNull('channel_id')
+            ->whereNull('community_id')
+            ->where(function ($q) use ($userA, $userB) {
+                $q->where(function ($q2) use ($userA, $userB) {
+                    $q2->where('sender_id', $userA)->where('receiver_id', $userB);
+                })->orWhere(function ($q2) use ($userA, $userB) {
+                    $q2->where('sender_id', $userB)->where('receiver_id', $userA);
+                });
+            });
     }
 
     // -----------------------------------------------------------------------

@@ -98,4 +98,31 @@ class UserController extends Controller
         }
         return response()->json(['status' => 'online']);
     }
+
+    /**
+     * Mark user as offline (called on tab close / beforeunload).
+     */
+    public function goOffline(Request $request)
+    {
+        $user = Auth::user();
+        if ($user) {
+            $user->update([
+                'is_online' => false,
+                'last_seen' => now()
+            ]);
+        }
+        return response()->json(['status' => 'offline']);
+    }
+
+    /**
+     * Mark all stale users as offline (users who haven't pinged in 60 seconds).
+     */
+    public function cleanStaleOnlineStatuses()
+    {
+        User::where('is_online', true)
+            ->where('last_seen', '<', now()->subSeconds(60))
+            ->update(['is_online' => false]);
+
+        return response()->json(['status' => 'cleaned']);
+    }
 }

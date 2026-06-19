@@ -7,8 +7,18 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('chat.{receiverId}', function ($user, $receiverId) {
-    // Both sender and receiver can join this private channel to talk
-    return (int) $user->id === (int) $receiverId || \App\Models\User::where('id', $receiverId)->exists();
+    return (int) $user->id === (int) $receiverId
+        || \App\Models\Message::where(function ($q) use ($user, $receiverId) {
+            $q->where('sender_id', $user->id)->where('receiver_id', $receiverId);
+        })->orWhere(function ($q) use ($user, $receiverId) {
+            $q->where('sender_id', $receiverId)->where('receiver_id', $user->id);
+        })->exists();
+});
+
+Broadcast::channel('group.{groupId}', function ($user, $groupId) {
+    return \App\Models\Group::where('id', $groupId)
+        ->whereHas('members', fn($q) => $q->where('user_id', $user->id))
+        ->exists();
 });
 
 Broadcast::channel('online', function ($user) {

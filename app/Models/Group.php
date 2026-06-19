@@ -30,4 +30,9 @@ class Group extends Model
     {
         return $this->hasOne(Message::class)->latest();
     }
+
+    public function communities(): BelongsToMany
+    {
+        return $this->belongsToMany(Community::class, 'community_groups')->withTimestamps();
+    }
 }
